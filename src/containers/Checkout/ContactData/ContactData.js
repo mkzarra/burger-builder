@@ -1,17 +1,64 @@
 import React, { Component } from 'react';
-import axios from '../../../axios-orders';
 
 import Button from '../../../components/UI/Button/Button';
 import Spinner from '../../../components/UI/Spinner/Spinner';
 import classes from './ContactData.module.css';
+import axios from '../../../axios-orders';
+import Input from '../../../components/UI/Input/Input';
 
 class ContactData extends Component {
   state = {
-    name: '',
-    email: '',
-    address: {
-      street: '',
-      postCode: ''
+    orderForm: {
+      name: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'text',
+          placeholder: 'Harry Potter'
+        },
+        value: '' //'Max Shwarzmüller'
+    },
+      street: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'text',
+          placeholder: '123 Main Street'
+        },
+        value: ''
+      },
+      zipCode: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'text',
+          placeholder: 'ZIP_CODE'
+        },
+        value: ''
+      },
+      country: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'text',
+          placeholder: 'Country'
+        },
+        value: ''
+      },
+      email: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'email',
+          placeholder: 'chosen.one@hogwarts.uk'
+        },
+        value: ''
+      },
+      deliveryMethod: {
+        elementType: 'select',
+        elementConfig: {
+          options: [
+            { value: 'premium', displayValue: 'Premium' },
+            { value: 'standard', displayValue: 'Standard' }
+          ]
+        },
+        value: ''
+      }
     },
     loading: false
   }
@@ -22,17 +69,7 @@ class ContactData extends Component {
     this.setState({ loading: true });
     const order = {
       ingredients: this.props.ingredients,
-      price: this.props.price,
-      customer: {
-        name: 'Max Shwarzmüller',
-        address: {
-          street: '1 Street Ave',
-          zipCode: '22222',
-          country: 'Germany'
-        },
-        email: 'max@max.max'
-      },
-      deliveryMethod: 'premium'
+      price: this.props.price
     }
     axios.post('/orders.json', order)
       .then(response => {
@@ -42,15 +79,35 @@ class ContactData extends Component {
       .catch(this.setState({ loading: false }));
   }
 
+  inputChangedHandler = (event, inputIdentifier) => {
+    const updatedOrderForm = { ...this.state.orderForm };
+    const updatedFormElement = { ...updatedOrderForm[inputIdentifier] };
+    updatedFormElement.value = event.target.value;
+    updatedOrderForm[inputIdentifier] = updatedFormElement;
+    this.setState({ orderForm: updatedOrderForm });
+  }
+
   render() {
+    const formElementsArray = [];
+    for (let key in this.state.orderForm) {
+      formElementsArray.push({
+        id: key,
+        config: this.state.orderForm[key]
+      })
+    }
     let form = (
       <form>
-          <input className={classes.Input} type="text" name="name" placeholder="Harry Potter" />
-          <input className={classes.Input} type="email" name="email" placeholder="chosen.one@hogwarts.uk" />
-          <input className={classes.Input} type="text" name="street" placeholder="123 Main S" />
-          <input className={classes.Input} type="text" name="post_code" placeholder="12345" />
-          <Button btnType="Success" clicked={this.orderHandler}>ORDER</Button>
-        </form>
+        
+        {formElementsArray.map(formElement => (
+          <Input
+            key={formElement.id}
+            elementType={formElement.config.elementType}
+            elementConfig={formElement.config.elementConfig}
+            value={formElement.config.value}
+            changed={(event) => this.inputChangedHandler(event, formElement.id)} />
+        ))}
+        <Button btnType="Success" clicked={this.orderHandler}>ORDER</Button>
+      </form>
     );
     if (this.state.loading) {
       return <Spinner />
@@ -60,7 +117,7 @@ class ContactData extends Component {
         <h4>Enter Contact Info</h4>
         {form}
       </div>
-    )
+    );
   }
 }
 
