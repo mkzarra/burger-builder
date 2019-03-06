@@ -12,4 +12,4 @@ const navItem = props => (
   </li>
 );
 
-export default navItem
+export default navItem;
